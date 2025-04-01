@@ -1,0 +1,63 @@
+# Build directories
+build/
+out/
+bin/
+lib/
+Debug/
+Release/
+x64/
+x86/
+[Bb]uild*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Compiled Object files
+*.o
+*.obj
+*.slo
+*.lo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Generated files
+*.py
+
+# IDE files
+.vs/
+.idea/
+.vscode/
+*.swp
+*.swo
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.db
+*.opendb
+
+# OS specific files
+.DS_Store
+Thumbs.db 
