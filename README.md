@@ -270,7 +270,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## Developers
 
-This PL was made with love by team AGILE of TN32:
+This PL was made with love by Team AGILE of TN32:
 - Dane Quintano
 - Jansen Moral
 - JC Paglinawan
