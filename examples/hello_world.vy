@@ -1,8 +1,6 @@
-// Hello World program in Vypr
+var age_str
+input age_str  // Reads input as a string
 
-print "Hello, World!"
+var age_int = int(age_str) // Explicitly convert to integer
 
-var a = 2
-var b = 2
-var c = a + b ^ " is the answer!"
-print c
+print "Next year you will be: " ^ (age_int + 1.6)

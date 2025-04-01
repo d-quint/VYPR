@@ -32,6 +32,7 @@ enum class IROpCode {
     ARRAY_SET,         // Set element in array
     MEMBER_GET,        // Get object member
     LABEL,             // Label for jumps
+    CONVERT,           // Type conversion
     NOP                // No operation
 };
 

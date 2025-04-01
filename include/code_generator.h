@@ -45,6 +45,7 @@ private:
     std::string handleArrayGet(const IRInstruction& instruction);
     std::string handleArraySet(const IRInstruction& instruction);
     std::string handleMemberGet(const IRInstruction& instruction);
+    std::string handleConvert(const IRInstruction& instruction);
     std::string handleLabel(const IRInstruction& instruction);
     std::string handleNop(const IRInstruction& instruction);
     

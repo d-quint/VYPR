@@ -369,14 +369,23 @@ std::string IRGenerator::visitVariableExpression(const std::shared_ptr<VariableE
 }
 
 std::string IRGenerator::visitCallExpression(const std::shared_ptr<CallExpression>& expr) {
+    std::string callee_name = expr->callee;
     std::vector<std::string> argValues;
-    
+
     // Evaluate arguments
     for (const auto& arg : expr->arguments) {
         argValues.push_back(visit(arg));
     }
-    
-    // Join argument values with commas
+
+    // Check for built-in type conversion functions
+    if ((callee_name == "int" || callee_name == "float" || callee_name == "str" || callee_name == "bool") && argValues.size() == 1) {
+        std::string result = generateTemp();
+        // Emit CONVERT instruction: result = type(source)
+        emit(IRInstruction(IROpCode::CONVERT, {result, callee_name, argValues[0]}));
+        return result;
+    }
+
+    // Handle regular function calls
     std::string argsStr;
     for (size_t i = 0; i < argValues.size(); ++i) {
         if (i > 0) {
@@ -386,7 +395,7 @@ std::string IRGenerator::visitCallExpression(const std::shared_ptr<CallExpressio
     }
     
     std::string result = generateTemp();
-    emit(IRInstruction(IROpCode::CALL, {result, expr->callee, argsStr}));
+    emit(IRInstruction(IROpCode::CALL, {result, callee_name, argsStr}));
     return result;
 }
 
@@ -448,6 +457,7 @@ std::string irOpCodeToString(IROpCode opcode) {
         case IROpCode::ARRAY_SET: return "ARRAY_SET";
         case IROpCode::MEMBER_GET: return "MEMBER_GET";
         case IROpCode::LABEL: return "LABEL";
+        case IROpCode::CONVERT: return "CONVERT";
         case IROpCode::NOP: return "NOP";
         default: return "UNKNOWN";
     }

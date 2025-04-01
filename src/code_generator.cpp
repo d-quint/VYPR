@@ -1,6 +1,7 @@
 #include "code_generator.h"
 #include <iostream>
 #include <map>
+#include <stdexcept>
 
 namespace vypr {
 
@@ -11,9 +12,6 @@ CodeGenerator::CodeGenerator(bool verbose) : verbose(verbose) {
     opcodeHandlers[IROpCode::STORE_VAR] = &CodeGenerator::handleStoreVar;
     opcodeHandlers[IROpCode::BINARY_OP] = &CodeGenerator::handleBinaryOp;
     opcodeHandlers[IROpCode::UNARY_OP] = &CodeGenerator::handleUnaryOp;
-    opcodeHandlers[IROpCode::JUMP] = &CodeGenerator::handleJump;
-    opcodeHandlers[IROpCode::JUMP_IF_FALSE] = &CodeGenerator::handleJumpIfFalse;
-    opcodeHandlers[IROpCode::JUMP_IF_TRUE] = &CodeGenerator::handleJumpIfTrue;
     opcodeHandlers[IROpCode::CALL] = &CodeGenerator::handleCall;
     opcodeHandlers[IROpCode::RETURN] = &CodeGenerator::handleReturn;
     opcodeHandlers[IROpCode::PRINT] = &CodeGenerator::handlePrint;
@@ -22,7 +20,7 @@ CodeGenerator::CodeGenerator(bool verbose) : verbose(verbose) {
     opcodeHandlers[IROpCode::ARRAY_GET] = &CodeGenerator::handleArrayGet;
     opcodeHandlers[IROpCode::ARRAY_SET] = &CodeGenerator::handleArraySet;
     opcodeHandlers[IROpCode::MEMBER_GET] = &CodeGenerator::handleMemberGet;
-    opcodeHandlers[IROpCode::LABEL] = &CodeGenerator::handleLabel;
+    opcodeHandlers[IROpCode::CONVERT] = &CodeGenerator::handleConvert;
     opcodeHandlers[IROpCode::NOP] = &CodeGenerator::handleNop;
 }
 
@@ -85,21 +83,169 @@ void CodeGenerator::writeFunction(const IRFunction& function) {
         outFile << function.parameters[i];
     }
     outFile << "):\n";
-    
-    // Write function body
-    for (const auto& instr : function.instructions) {
-        std::string code = (this->*opcodeHandlers.at(instr.opcode))(instr);
-        outFile << getIndent(1) << code << "\n";
-    }
-}
 
-void CodeGenerator::writeInstruction(const IRInstruction& instruction) {
-    std::string code = (this->*opcodeHandlers.at(instruction.opcode))(instruction);
-    outFile << code << "\n";
+    // Build label map (Label Name -> Instruction Index)
+    std::map<std::string, int> label_map;
+    for (size_t i = 0; i < function.instructions.size(); ++i) {
+        const auto& instr = function.instructions[i];
+        if (instr.opcode == IROpCode::LABEL) {
+            if (label_map.count(instr.operands[0])) {
+                 throw std::runtime_error("Duplicate label found in IR function '" + function.name + "': " + instr.operands[0]);
+            }
+            label_map[instr.operands[0]] = static_cast<int>(i);
+        }
+    }
+
+    // Initialize Python program counter
+    outFile << getIndent(1) << "_pc = 0\n";
+    // Start simulation loop
+    outFile << getIndent(1) << "while True:\n";
+
+    if (function.instructions.empty()) {
+        // Handle empty function body
+        outFile << getIndent(2) << "pass # Empty function\n";
+        outFile << getIndent(2) << "break\n";
+    } else {
+        // Generate if/elif chain for instruction dispatch (only if instructions exist)
+        for (size_t i = 0; i < function.instructions.size(); ++i) {
+            const auto& instr = function.instructions[i];
+            std::string current_block_indent = getIndent(2); // Indentation for if/elif _pc == N:
+            std::string current_code_indent = getIndent(3); // Indentation for code inside the block
+
+            // Start if/elif block for this instruction index
+            if (i == 0) {
+                outFile << current_block_indent << "if _pc == " << i << ":\n";
+            } else {
+                outFile << current_block_indent << "elif _pc == " << i << ":\n";
+            }
+
+            // Generate code based on opcode
+            bool pc_increment_handled = false; // Track if jump/return handles _pc update
+
+            switch (instr.opcode) {
+                case IROpCode::LABEL:
+                    outFile << current_code_indent << "# LABEL " << instr.operands[0] << "\n";
+                    break;
+    
+                case IROpCode::JUMP: {
+                    std::string target_label = instr.operands[0];
+                    if (label_map.count(target_label)) {
+                        outFile << current_code_indent << "_pc = " << label_map[target_label] << "\n";
+                        pc_increment_handled = true;
+                    } else {
+                         throw std::runtime_error("Undefined label referenced in JUMP: " + target_label);
+                    }
+                    break;
+                }
+    
+                case IROpCode::JUMP_IF_FALSE: {
+                    std::string condition = instr.operands[0];
+                    std::string target_label = instr.operands[1];
+                    if (label_map.count(target_label)) {
+                        outFile << current_code_indent << "if not " << condition << ":\n";
+                        outFile << current_code_indent << getIndent(1) << "_pc = " << label_map[target_label] << "\n"; // Jump
+                        outFile << current_code_indent << "else:\n";
+                        outFile << current_code_indent << getIndent(1) << "_pc += 1\n"; // Go to next instruction
+                        pc_increment_handled = true;
+                    } else {
+                         throw std::runtime_error("Undefined label referenced in JUMP_IF_FALSE: " + target_label);
+                    }
+                    break;
+                }
+    
+                 case IROpCode::JUMP_IF_TRUE: {
+                    std::string condition = instr.operands[0];
+                    std::string target_label = instr.operands[1];
+                     if (label_map.count(target_label)) {
+                        outFile << current_code_indent << "if " << condition << ":\n";
+                        outFile << current_code_indent << getIndent(1) << "_pc = " << label_map[target_label] << "\n"; // Jump
+                        outFile << current_code_indent << "else:\n";
+                        outFile << current_code_indent << getIndent(1) << "_pc += 1\n"; // Go to next instruction
+                        pc_increment_handled = true;
+                     } else {
+                         throw std::runtime_error("Undefined label referenced in JUMP_IF_TRUE: " + target_label);
+                     }
+                    break;
+                }
+    
+                case IROpCode::RETURN:
+                    if (instr.operands.empty()) {
+                        outFile << current_code_indent << "return\n";
+                    } else {
+                        outFile << current_code_indent << "return " << instr.operands[0] << "\n";
+                    }
+                    outFile << current_code_indent << "break # Exit loop after return\n";
+                    pc_increment_handled = true;
+                    break;
+                // ... (cases for other instructions) ...
+                case IROpCode::LOAD_CONST: outFile << current_code_indent << handleLoadConst(instr) << "\n"; break;
+                case IROpCode::LOAD_VAR:   outFile << current_code_indent << handleLoadVar(instr) << "\n"; break;
+                case IROpCode::STORE_VAR:  outFile << current_code_indent << handleStoreVar(instr) << "\n"; break;
+                case IROpCode::BINARY_OP:  outFile << current_code_indent << handleBinaryOp(instr) << "\n"; break;
+                case IROpCode::UNARY_OP:   outFile << current_code_indent << handleUnaryOp(instr) << "\n"; break;
+                case IROpCode::CALL:       outFile << current_code_indent << handleCall(instr) << "\n"; break;
+                case IROpCode::PRINT:      outFile << current_code_indent << handlePrint(instr) << "\n"; break;
+                case IROpCode::INPUT:      outFile << current_code_indent << handleInput(instr) << "\n"; break;
+                case IROpCode::ARRAY_NEW:  outFile << current_code_indent << handleArrayNew(instr) << "\n"; break;
+                case IROpCode::ARRAY_GET:  outFile << current_code_indent << handleArrayGet(instr) << "\n"; break;
+                case IROpCode::ARRAY_SET:  outFile << current_code_indent << handleArraySet(instr) << "\n"; break;
+                case IROpCode::MEMBER_GET: outFile << current_code_indent << handleMemberGet(instr) << "\n"; break;
+                case IROpCode::CONVERT:    outFile << current_code_indent << handleConvert(instr) << "\n"; break;
+                case IROpCode::NOP:        outFile << current_code_indent << handleNop(instr) << "\n"; break;
+
+                default:
+                     throw std::runtime_error("Unsupported IR opcode encountered during Python code generation: OpCode " + std::to_string(static_cast<int>(instr.opcode)));
+            }
+
+            // Increment _pc for the next cycle if not handled by jump/return
+            if (!pc_increment_handled) {
+                 outFile << current_code_indent << "_pc += 1\n";
+            }
+        }
+
+        // Add final else block for the while loop to catch runaway _pc (only if instructions exist)
+        outFile << getIndent(2) << "else:\n";
+        outFile << getIndent(3) << "# Instruction pointer out of bounds or loop finished\n";
+        outFile << getIndent(3) << "break\n";
+    }
+
+    outFile << "\n"; // Newline after function definition
 }
 
 std::string CodeGenerator::handleLoadConst(const IRInstruction& instruction) {
-    return instruction.operands[0] + " = " + instruction.operands[1];
+    // Check if the constant is a string and needs quotes
+    // This is a basic check; IR generator should ideally provide type info
+    // or escape strings appropriately.
+    std::string value = instruction.operands[1];
+    if (!value.empty() && value.front() == '\"' && value.back() == '\"') {
+         // Already looks like a Python string literal
+    } else if (!value.empty() && value.front() == '\'' && value.back() == '\'') {
+         // Already looks like a Python string literal
+    } else {
+        // Attempt to detect if it's non-numeric to add quotes
+        bool is_numeric = true;
+        bool has_dot = false;
+        if (value.empty()) is_numeric = false;
+        for (size_t i = 0; i < value.length(); ++i) {
+            if (i == 0 && value[i] == '-') continue; // Allow leading minus
+            if (value[i] == '.' && !has_dot) { has_dot = true; continue; } // Allow one dot
+            if (!std::isdigit(value[i])) {
+                is_numeric = false;
+                break;
+            }
+        }
+         // Basic keywords check (true/false/None might be loaded as constants)
+        if (value == "true") value = "True";
+        else if (value == "false") value = "False";
+        // Add more keywords if needed (e.g., None)
+        else if (!is_numeric) {
+            // Assuming non-numeric non-keyword needs quotes - this might be fragile
+            // Ideally, IR should tag constants with types.
+            // Escaping quotes within the string is also not handled here.
+            value = "\\\"" + value + "\\\""; // Basic quoting
+        }
+    }
+    return instruction.operands[0] + " = " + value;
 }
 
 std::string CodeGenerator::handleLoadVar(const IRInstruction& instruction) {
@@ -144,20 +290,6 @@ std::string CodeGenerator::handleUnaryOp(const IRInstruction& instruction) {
     }
     
     return result + " = " + op + operand;
-}
-
-std::string CodeGenerator::handleJump(const IRInstruction& instruction) {
-    return "_label = " + instruction.operands[0].substr(1);  // Remove 'L' prefix
-}
-
-std::string CodeGenerator::handleJumpIfFalse(const IRInstruction& instruction) {
-    return "if not " + instruction.operands[0] + ":\n" + 
-           getIndent(4) + "_label = " + instruction.operands[1].substr(1);  // Remove 'L' prefix
-}
-
-std::string CodeGenerator::handleJumpIfTrue(const IRInstruction& instruction) {
-    return "if " + instruction.operands[0] + ":\n" + 
-           getIndent(4) + "_label = " + instruction.operands[1].substr(1);  // Remove 'L' prefix
 }
 
 std::string CodeGenerator::handleCall(const IRInstruction& instruction) {
@@ -220,9 +352,15 @@ std::string CodeGenerator::handleMemberGet(const IRInstruction& instruction) {
     return result + " = " + object + "." + member;
 }
 
-std::string CodeGenerator::handleLabel(const IRInstruction& instruction) {
-    // Labels are handled specially in writeFunction
-    return "# Label " + instruction.operands[0];
+std::string CodeGenerator::handleConvert(const IRInstruction& instruction) {
+    std::string result = instruction.operands[0];
+    std::string target_type = instruction.operands[1]; // e.g., "int", "float", "str", "bool"
+    std::string source = instruction.operands[2];
+    
+    // Map Vypr type names to Python type names if necessary (they match here)
+    std::string python_type = target_type; 
+    
+    return result + " = " + python_type + "(" + source + ")";
 }
 
 std::string CodeGenerator::handleNop([[maybe_unused]] const IRInstruction& instruction) {

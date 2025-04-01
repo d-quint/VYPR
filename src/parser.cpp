@@ -4,22 +4,22 @@
 
 namespace vypr {
 
-Parser::Parser(const std::vector<Token>& tokens)
-    : tokens(tokens), current(0) {}
+Parser::Parser(const std::vector<Token>& tokens, bool verbose)
+    : tokens(tokens), current(0), verbose(verbose) {}
 
 std::shared_ptr<Program> Parser::parse() {
-    std::cout << "Starting parse()...\n"; // Debug
+    if (this->verbose) std::cout << "Starting parse()...\n"; // Debug
     try {
         auto program_node = program();
-        std::cout << "Finished program(). Returning AST.\n"; // Debug
+        if (this->verbose) std::cout << "Finished program(). Returning AST.\n"; // Debug
         return program_node;
     } catch (const ParseError& e) {
-        std::cerr << "Caught ParseError in parse(): " << e.what() << "\n"; // Debug Error
+        if (this->verbose) std::cerr << "Caught ParseError in parse(): " << e.what() << "\n"; // Debug Error
         std::stringstream ss;
         ss << "Parse error: " << e.what();
         throw ParseError(ss.str());
     } catch (const std::exception& e) {
-        std::cerr << "Caught std::exception in parse(): " << e.what() << "\n"; // Debug Error
+        if (this->verbose) std::cerr << "Caught std::exception in parse(): " << e.what() << "\n"; // Debug Error
         throw; // Re-throw other standard exceptions
     }
 }
@@ -92,12 +92,12 @@ ParseError Parser::error(const Token& token, const std::string& message) {
 }
 
 void Parser::synchronize() {
-    std::cout << "Entering synchronize().\n"; // Debug
+    if (this->verbose) std::cout << "Entering synchronize().\n"; // Debug
     advance();
     while (!isAtEnd()) {
-        std::cout << "synchronize() loop, current: " << peek().toString() << "\n"; // Debug
+        if (this->verbose) std::cout << "synchronize() loop, current: " << peek().toString() << "\n"; // Debug
         if (previous().type == TokenType::NEWLINE) {
-            std::cout << "synchronize() found NEWLINE, returning.\n"; // Debug
+            if (this->verbose) std::cout << "synchronize() found NEWLINE, returning.\n"; // Debug
             return;
         }
         switch (peek().type) {
@@ -109,40 +109,40 @@ void Parser::synchronize() {
             case TokenType::RETURN:
             case TokenType::PRINT:
             case TokenType::INPUT:
-                std::cout << "synchronize() found statement start, returning.\n"; // Debug
+                if (this->verbose) std::cout << "synchronize() found statement start, returning.\n"; // Debug
                 return;
             default:
                 break;
         }
         advance();
     }
-    std::cout << "synchronize() reached end.\n"; // Debug
+    if (this->verbose) std::cout << "synchronize() reached end.\n"; // Debug
 }
 
 std::shared_ptr<Program> Parser::program() {
-    std::cout << "Entering program().\n"; // Debug
+    if (this->verbose) std::cout << "Entering program().\n"; // Debug
     std::vector<StatementPtr> statements;
     while (!isAtEnd()) {
-        std::cout << "program() loop start, current: " << peek().toString() << "\n"; // Debug
+        if (this->verbose) std::cout << "program() loop start, current: " << peek().toString() << "\n"; // Debug
         try {
             if (match(TokenType::NEWLINE)) {
-                std::cout << "program() skipped NEWLINE.\n"; // Debug
+                if (this->verbose) std::cout << "program() skipped NEWLINE.\n"; // Debug
                 continue;
             }
-            std::cout << "program() calling declaration().\n"; // Debug
+            if (this->verbose) std::cout << "program() calling declaration().\n"; // Debug
             statements.push_back(declaration());
-            std::cout << "program() returned from declaration().\n"; // Debug
+            if (this->verbose) std::cout << "program() returned from declaration().\n"; // Debug
         } catch (const ParseError& e) {
-            std::cerr << "Caught ParseError in program() loop: " << e.what() << "\n"; // Debug Error
+            if (this->verbose) std::cerr << "Caught ParseError in program() loop: " << e.what() << "\n"; // Debug Error
             synchronize();
         }
     }
-    std::cout << "program() loop finished.\n"; // Debug
+    if (this->verbose) std::cout << "program() loop finished.\n"; // Debug
     return std::make_shared<Program>(statements);
 }
 
 StatementPtr Parser::declaration() {
-    std::cout << "Entering declaration(), current: " << peek().toString() << "\n"; // Debug
+    if (this->verbose) std::cout << "Entering declaration(), current: " << peek().toString() << "\n"; // Debug
     if (match(TokenType::VAR)) {
         return var_declaration();
     }
@@ -151,7 +151,7 @@ StatementPtr Parser::declaration() {
         return func_declaration();
     }
     
-    std::cout << "declaration() calling statement().\n"; // Debug
+    if (this->verbose) std::cout << "declaration() calling statement().\n"; // Debug
     return statement();
 }
 
@@ -212,7 +212,7 @@ std::vector<std::string> Parser::parameters() {
 }
 
 StatementPtr Parser::statement() {
-    std::cout << "Entering statement(), current: " << peek().toString() << "\n"; // Debug
+    if (this->verbose) std::cout << "Entering statement(), current: " << peek().toString() << "\n"; // Debug
     if (match(TokenType::IF)) {
         return if_statement();
     }
@@ -230,7 +230,7 @@ StatementPtr Parser::statement() {
     }
     
     if (match(TokenType::PRINT)) {
-        std::cout << "statement() matched PRINT, calling print_statement().\n"; // Debug
+        if (this->verbose) std::cout << "statement() matched PRINT, calling print_statement().\n"; // Debug
         return print_statement();
     }
     
@@ -238,7 +238,7 @@ StatementPtr Parser::statement() {
         return input_statement();
     }
     
-    std::cout << "statement() calling expression_statement().\n"; // Debug
+    if (this->verbose) std::cout << "statement() calling expression_statement().\n"; // Debug
     return expression_statement();
 }
 
@@ -337,11 +337,11 @@ StatementPtr Parser::return_statement() {
 }
 
 StatementPtr Parser::print_statement() {
-    std::cout << "Entering print_statement().\n"; // Debug
+    if (this->verbose) std::cout << "Entering print_statement().\n"; // Debug
     ExpressionPtr value = expression();
-    std::cout << "print_statement() parsed expression, checking NEWLINE, current: " << peek().toString() << "\n"; // Debug
+    if (this->verbose) std::cout << "print_statement() parsed expression, checking NEWLINE, current: " << peek().toString() << "\n"; // Debug
     match(TokenType::NEWLINE);  // Consume the newline
-    std::cout << "print_statement() finished.\n"; // Debug
+    if (this->verbose) std::cout << "print_statement() finished.\n"; // Debug
     return std::make_shared<PrintStatement>(value);
 }
 

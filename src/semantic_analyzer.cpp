@@ -336,30 +336,45 @@ void SemanticAnalyzer::visitVariableExpression(const std::shared_ptr<VariableExp
 }
 
 void SemanticAnalyzer::visitCallExpression(const std::shared_ptr<CallExpression>& expr) {
-    // Check if function exists
-    Symbol* symbol = current_scope->resolve(expr->callee);
-    if (symbol == nullptr) {
-        std::stringstream ss;
-        ss << "Function '" << expr->callee << "' is not defined";
-        throw SemanticError(ss.str());
+    std::string callee_name = expr->callee;
+
+    // Check for known built-in functions
+    bool is_builtin_convert = (callee_name == "int" || callee_name == "float" || callee_name == "str" || callee_name == "bool");
+
+    if (is_builtin_convert) {
+        // Built-in conversion functions expect exactly one argument
+        if (expr->arguments.size() != 1) {
+            std::stringstream ss;
+            ss << "Built-in function '" << callee_name << "' expects 1 argument, but got " 
+               << expr->arguments.size();
+            throw SemanticError(ss.str());
+        }
+    } else {
+        // Check user-defined functions
+        Symbol* symbol = current_scope->resolve(callee_name);
+        if (symbol == nullptr) {
+            std::stringstream ss;
+            ss << "Function '" << callee_name << "' is not defined";
+            throw SemanticError(ss.str());
+        }
+        
+        // Check if it's a function
+        if (symbol->type != Symbol::Type::FUNCTION) {
+            std::stringstream ss;
+            ss << "'" << callee_name << "' is not a function";
+            throw SemanticError(ss.str());
+        }
+        
+        // Check argument count for user-defined functions
+        if (symbol->paramCount != expr->arguments.size()) {
+            std::stringstream ss;
+            ss << "Function '" << callee_name << "' expects " << symbol->paramCount
+               << " arguments, but got " << expr->arguments.size();
+            throw SemanticError(ss.str());
+        }
     }
     
-    // Check if it's a function
-    if (symbol->type != Symbol::Type::FUNCTION) {
-        std::stringstream ss;
-        ss << "'" << expr->callee << "' is not a function";
-        throw SemanticError(ss.str());
-    }
-    
-    // Check argument count
-    if (symbol->paramCount != expr->arguments.size()) {
-        std::stringstream ss;
-        ss << "Function '" << expr->callee << "' expects " << symbol->paramCount
-           << " arguments, but got " << expr->arguments.size();
-        throw SemanticError(ss.str());
-    }
-    
-    // Check arguments
+    // Check arguments (for both built-in and user-defined)
     for (const auto& arg : expr->arguments) {
         visit(arg);
     }

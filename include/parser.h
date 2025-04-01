@@ -13,12 +13,13 @@ namespace vypr {
 
 class Parser {
 public:
-    explicit Parser(const std::vector<Token>& tokens);
+    Parser(const std::vector<Token>& tokens, bool verbose);
     std::shared_ptr<Program> parse();
 
 private:
     std::vector<Token> tokens;
-    int current;
+    size_t current;
+    bool verbose;
 
     // Helper methods
     Token peek() const;

@@ -35,7 +35,7 @@ void Compiler::compile(const std::string& source, const std::string& output_file
         if (verbose) {
             std::cout << "=== Syntax Analysis ===\n";
         }
-        Parser parser(tokens);
+        Parser parser(tokens, verbose);
         std::shared_ptr<Program> ast = parser.parse();
         
         if (verbose) {
@@ -66,8 +66,11 @@ void Compiler::compile(const std::string& source, const std::string& output_file
         
         if (verbose) {
             std::cout << "IR Instructions (" << functions.size() << "):\n";
-            for (size_t i = 0; i < functions.size(); ++i) {
-                std::cout << "  " << i << ": " << functions[i].instructions[0].toString() << "\n";
+            for (const auto& function : functions) {
+                std::cout << "  Function: " << function.name << "\n";
+                for (size_t i = 0; i < function.instructions.size(); ++i) {
+                    std::cout << "    " << i << ": " << function.instructions[i].toString() << "\n";
+                }
             }
             std::cout << "\n";
         }

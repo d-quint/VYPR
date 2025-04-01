@@ -12,7 +12,7 @@ void printUsage() {
     std::cout << "Vypr Compiler - Translates Vypr (.vy) files to Python\n";
     std::cout << "Usage: vypr [options] <source_file.vy>\n\n";
     std::cout << "Options:\n";
-    std::cout << "  -v, -verbose   Show compilation progress and debugging information\n";
+    std::cout << "  -v, --verbose   Show compilation progress and debugging information\n";
     std::cout << "  -o <filename>  Specify output executable name (without extension)\n";
     std::cout << "  -h, --help     Show this help message\n";
 }
