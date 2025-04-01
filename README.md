@@ -1,6 +1,6 @@
 # Introducing: Vypr
 
-A simple programming language compiler that translates Vypr code (.vy files) to Python. Vypr offers a clean syntax inspired by a combination of Python and Javascript, but with some extra unique features for readability and simplicity.
+Vypr offers a clean syntax inspired by a combination of Python and Javascript, but with some extra unique features for readability and simplicity. This source code is an implementation of a compiler that generates IR code, translates it into Python code, and offers a way to run and interact with Vypr code.
 
 ## Project Structure
 
