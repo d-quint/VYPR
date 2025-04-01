@@ -69,7 +69,7 @@ vypr/
 
 1. Compile a Vypr program:
    ```
-   vypr.exe path/to/program.vy
+   vypr path/to/program.vy
    ```
 
 2. This will create a Python file with the same name (`program.py`) and a batch file to run it. It will also automatically run the generated Python file upon compilation.
