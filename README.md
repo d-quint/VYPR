@@ -47,11 +47,11 @@ vypr/
    cd vypr
    ```
 
-2. Create a build directory and configure:
+2. Create a build directory and configure (the cmake line is only if you're using the MinGW compiler):
    ```
    mkdir build
    cd build
-   cmake ..
+   cmake -G "MinGW Makefiles" ..
    ```
 
 3. Build the project:
