@@ -76,7 +76,7 @@ vypr/
 
 3. You can also create an executable with a specific name:
    ```
-   vypr.exe -o my_program path/to/program.vy
+   vypr -o my_program path/to/program.vy
    ```
 
 4. If you want to rerun the program without compiling Vypr code again, do this:
