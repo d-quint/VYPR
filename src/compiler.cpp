@@ -4,6 +4,10 @@
 #include <sstream>
 #include <filesystem>
 #include <cstring>
+#include "exceptions.h"
+#include "parser.h"
+#include "lexer.h"
+#include "semantic_analyzer.h"
 
 namespace vypr {
 
@@ -79,7 +83,7 @@ void Compiler::compile(const std::string& source, const std::string& output_file
         if (verbose) {
             std::cout << "=== Code Generation ===\n";
         }
-        CodeGenerator code_gen;
+        CodeGenerator code_gen(verbose);
         std::string py_file = output_file + ".py";
         code_gen.generate(functions, py_file);
         
@@ -98,6 +102,12 @@ void Compiler::compile(const std::string& source, const std::string& output_file
             std::cout << "  - " << bat_file << "\n";
         }
         
+    } catch (const LexerError& e) {
+        throw CompileError(e.what());
+    } catch (const ParseError& e) {
+        throw CompileError(e.what());
+    } catch (const SemanticError& e) {
+        throw CompileError(e.what());
     } catch (const std::exception& e) {
         throw CompileError(e.what());
     }

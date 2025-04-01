@@ -9,19 +9,9 @@ Parser::Parser(const std::vector<Token>& tokens, bool verbose)
 
 std::shared_ptr<Program> Parser::parse() {
     if (this->verbose) std::cout << "Starting parse()...\n"; // Debug
-    try {
-        auto program_node = program();
-        if (this->verbose) std::cout << "Finished program(). Returning AST.\n"; // Debug
-        return program_node;
-    } catch (const ParseError& e) {
-        if (this->verbose) std::cerr << "Caught ParseError in parse(): " << e.what() << "\n"; // Debug Error
-        std::stringstream ss;
-        ss << "Parse error: " << e.what();
-        throw ParseError(ss.str());
-    } catch (const std::exception& e) {
-        if (this->verbose) std::cerr << "Caught std::exception in parse(): " << e.what() << "\n"; // Debug Error
-        throw; // Re-throw other standard exceptions
-    }
+    auto program_node = program();
+    if (this->verbose) std::cout << "Finished program(). Returning AST.\n"; // Debug
+    return program_node;
 }
 
 Token Parser::peek() const {
@@ -124,18 +114,13 @@ std::shared_ptr<Program> Parser::program() {
     std::vector<StatementPtr> statements;
     while (!isAtEnd()) {
         if (this->verbose) std::cout << "program() loop start, current: " << peek().toString() << "\n"; // Debug
-        try {
-            if (match(TokenType::NEWLINE)) {
-                if (this->verbose) std::cout << "program() skipped NEWLINE.\n"; // Debug
-                continue;
-            }
-            if (this->verbose) std::cout << "program() calling declaration().\n"; // Debug
-            statements.push_back(declaration());
-            if (this->verbose) std::cout << "program() returned from declaration().\n"; // Debug
-        } catch (const ParseError& e) {
-            if (this->verbose) std::cerr << "Caught ParseError in program() loop: " << e.what() << "\n"; // Debug Error
-            synchronize();
+        if (match(TokenType::NEWLINE)) {
+            if (this->verbose) std::cout << "program() skipped NEWLINE.\n"; // Debug
+            continue;
         }
+        if (this->verbose) std::cout << "program() calling declaration().\n"; // Debug
+        statements.push_back(declaration());
+        if (this->verbose) std::cout << "program() returned from declaration().\n"; // Debug
     }
     if (this->verbose) std::cout << "program() loop finished.\n"; // Debug
     return std::make_shared<Program>(statements);

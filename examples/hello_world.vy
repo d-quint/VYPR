@@ -1,6 +1,9 @@
-var age_str
-input age_str  // Reads input as a string
+var a
+input a
 
-var age_int = int(age_str) // Explicitly convert to integer
-
-print "Next year you will be: " ^ (age_int + 1.6)
+if a == "TEST":
+    print "TEST was written"
+else if a == "HI":
+    print "HI was written"
+else:
+    print "Neither was written"

@@ -64,6 +64,8 @@ void IRGenerator::visit(const StatementPtr& stmt) {
         visitLoopInStatement(loopInStmt);
     } else if (auto loopTimesStmt = std::dynamic_pointer_cast<LoopTimesStatement>(stmt)) {
         visitLoopTimesStatement(loopTimesStmt);
+    } else {
+         throw std::runtime_error("Unknown statement type in IRGenerator::visit(StatementPtr)");
     }
 }
 
@@ -131,30 +133,31 @@ void IRGenerator::visitExpressionStatement(const std::shared_ptr<ExpressionState
     visit(stmt->expression);
 }
 
-void IRGenerator::visitIfStatement(const std::shared_ptr<IfStatement>& stmt) {
+void IRGenerator::visitIfStatement(const std::shared_ptr<IfStatement>& stmt, const std::string& finalEndLabel) {
     std::string condition = visit(stmt->condition);
     
     std::string elseLabel = currentFunction->generateLabel();
-    std::string endLabel = currentFunction->generateLabel();
+    std::string myEndLabel = finalEndLabel.empty() ? currentFunction->generateLabel() : finalEndLabel;
     
-    // Jump to else branch if condition is false
     emit(IRInstruction(IROpCode::JUMP_IF_FALSE, {condition, elseLabel}));
     
-    // Then branch
     visit(stmt->then_branch);
     
-    // Jump to end
-    emit(IRInstruction(IROpCode::JUMP, {endLabel}));
+    emit(IRInstruction(IROpCode::JUMP, {myEndLabel}));
     
-    // Else branch
     emit(IRInstruction(IROpCode::LABEL, {elseLabel}));
     
     if (stmt->else_branch != nullptr) {
-        visit(stmt->else_branch);
+        if (auto elseIfStmt = std::dynamic_pointer_cast<IfStatement>(stmt->else_branch)) {
+            visitIfStatement(elseIfStmt, myEndLabel);
+        } else {
+            visit(stmt->else_branch);
+        }
     }
     
-    // End label
-    emit(IRInstruction(IROpCode::LABEL, {endLabel}));
+    if (finalEndLabel.empty()) {
+        emit(IRInstruction(IROpCode::LABEL, {myEndLabel}));
+    }
 }
 
 void IRGenerator::visitWhileStatement(const std::shared_ptr<WhileStatement>& stmt) {

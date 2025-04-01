@@ -1,37 +1,50 @@
-#ifndef VYPR_EXCEPTIONS_H
-#define VYPR_EXCEPTIONS_H
+#pragma once
 
 #include <stdexcept>
 #include <string>
 
 namespace vypr {
 
-// Base class for compiler errors
+// Base class for all compiler-related errors
 class CompileError : public std::runtime_error {
 public:
     explicit CompileError(const std::string& message)
-        : std::runtime_error("Compile Error: " + message) {}
+        : std::runtime_error(message) {}
 };
 
-// Specific error types (can add more later if needed)
+// Lexer errors
 class LexerError : public CompileError {
 public:
     explicit LexerError(const std::string& message)
-        : CompileError("Lexer Error: " + message) {}
+        : CompileError(message) {}
 };
 
+// Parser errors
 class ParseError : public CompileError {
 public:
     explicit ParseError(const std::string& message)
-        : CompileError("Parse Error: " + message) {}
+        : CompileError(message) {}
 };
 
+// Semantic analysis errors
 class SemanticError : public CompileError {
 public:
     explicit SemanticError(const std::string& message)
-        : CompileError("Semantic Error: " + message) {}
+        : CompileError(message) {}
 };
 
-} // namespace vypr
+// Intermediate Representation errors
+class IRError : public CompileError {
+public:
+    explicit IRError(const std::string& message)
+        : CompileError(message) {}
+};
 
-#endif // VYPR_EXCEPTIONS_H 
+// Code generation errors
+class CodeGenError : public CompileError {
+public:
+    explicit CodeGenError(const std::string& message)
+        : CompileError(message) {}
+};
+
+} // namespace vypr 

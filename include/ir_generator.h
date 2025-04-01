@@ -105,7 +105,7 @@ private:
     void visitVarDeclaration(const std::shared_ptr<VarDeclarationStatement>& stmt);
     void visitFunctionDeclaration(const std::shared_ptr<FunctionDeclaration>& stmt);
     void visitExpressionStatement(const std::shared_ptr<ExpressionStatement>& stmt);
-    void visitIfStatement(const std::shared_ptr<IfStatement>& stmt);
+    void visitIfStatement(const std::shared_ptr<IfStatement>& stmt, const std::string& finalEndLabel = "");
     void visitWhileStatement(const std::shared_ptr<WhileStatement>& stmt);
     void visitReturnStatement(const std::shared_ptr<ReturnStatement>& stmt);
     void visitBlockStatement(const std::shared_ptr<BlockStatement>& stmt);
