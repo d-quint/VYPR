@@ -36,8 +36,19 @@ void IRGenerator::emit(const IRInstruction& instruction) {
 }
 
 void IRGenerator::visit(const std::shared_ptr<Program>& program) {
+    // First, handle all function declarations
     for (const auto& stmt : program->statements) {
-        visit(stmt);
+        if (auto funcDecl = std::dynamic_pointer_cast<FunctionDeclaration>(stmt)) {
+            visitFunctionDeclaration(funcDecl);
+        }
+    }
+    
+    // Then, handle all other statements in the main function
+    currentFunction = &functions.front(); // Switch to main function
+    for (const auto& stmt : program->statements) {
+        if (!std::dynamic_pointer_cast<FunctionDeclaration>(stmt)) {
+            visit(stmt);
+        }
     }
 }
 
@@ -314,6 +325,7 @@ std::string IRGenerator::visitBinaryExpression(const std::shared_ptr<BinaryExpre
         case TokenType::MINUS: op = "-"; break;
         case TokenType::MULTIPLY: op = "*"; break;
         case TokenType::DIVIDE: op = "/"; break;
+        case TokenType::MODULO: op = "%"; break;
         case TokenType::CONCAT: op = "^"; break;
         case TokenType::EQUAL: op = "=="; break;
         case TokenType::NOT_EQUAL: op = "!="; break;

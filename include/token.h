@@ -33,6 +33,7 @@ enum class TokenType {
     MINUS,        // -
     MULTIPLY,     // *
     DIVIDE,       // /
+    MODULO,       // %
     CONCAT,       // ^
     ASSIGN,       // =
     

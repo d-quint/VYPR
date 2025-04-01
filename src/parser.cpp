@@ -82,12 +82,9 @@ ParseError Parser::error(const Token& token, const std::string& message) {
 }
 
 void Parser::synchronize() {
-    if (this->verbose) std::cout << "Entering synchronize().\n"; // Debug
     advance();
     while (!isAtEnd()) {
-        if (this->verbose) std::cout << "synchronize() loop, current: " << peek().toString() << "\n"; // Debug
         if (previous().type == TokenType::NEWLINE) {
-            if (this->verbose) std::cout << "synchronize() found NEWLINE, returning.\n"; // Debug
             return;
         }
         switch (peek().type) {
@@ -99,35 +96,26 @@ void Parser::synchronize() {
             case TokenType::RETURN:
             case TokenType::PRINT:
             case TokenType::INPUT:
-                if (this->verbose) std::cout << "synchronize() found statement start, returning.\n"; // Debug
                 return;
             default:
                 break;
         }
         advance();
     }
-    if (this->verbose) std::cout << "synchronize() reached end.\n"; // Debug
 }
 
 std::shared_ptr<Program> Parser::program() {
-    if (this->verbose) std::cout << "Entering program().\n"; // Debug
     std::vector<StatementPtr> statements;
     while (!isAtEnd()) {
-        if (this->verbose) std::cout << "program() loop start, current: " << peek().toString() << "\n"; // Debug
         if (match(TokenType::NEWLINE)) {
-            if (this->verbose) std::cout << "program() skipped NEWLINE.\n"; // Debug
             continue;
         }
-        if (this->verbose) std::cout << "program() calling declaration().\n"; // Debug
         statements.push_back(declaration());
-        if (this->verbose) std::cout << "program() returned from declaration().\n"; // Debug
     }
-    if (this->verbose) std::cout << "program() loop finished.\n"; // Debug
     return std::make_shared<Program>(statements);
 }
 
 StatementPtr Parser::declaration() {
-    if (this->verbose) std::cout << "Entering declaration(), current: " << peek().toString() << "\n"; // Debug
     if (match(TokenType::VAR)) {
         return var_declaration();
     }
@@ -136,7 +124,6 @@ StatementPtr Parser::declaration() {
         return func_declaration();
     }
     
-    if (this->verbose) std::cout << "declaration() calling statement().\n"; // Debug
     return statement();
 }
 
@@ -197,7 +184,6 @@ std::vector<std::string> Parser::parameters() {
 }
 
 StatementPtr Parser::statement() {
-    if (this->verbose) std::cout << "Entering statement(), current: " << peek().toString() << "\n"; // Debug
     if (match(TokenType::IF)) {
         return if_statement();
     }
@@ -215,7 +201,6 @@ StatementPtr Parser::statement() {
     }
     
     if (match(TokenType::PRINT)) {
-        if (this->verbose) std::cout << "statement() matched PRINT, calling print_statement().\n"; // Debug
         return print_statement();
     }
     
@@ -223,7 +208,6 @@ StatementPtr Parser::statement() {
         return input_statement();
     }
     
-    if (this->verbose) std::cout << "statement() calling expression_statement().\n"; // Debug
     return expression_statement();
 }
 
@@ -273,6 +257,28 @@ StatementPtr Parser::while_statement() {
 }
 
 StatementPtr Parser::loop_statement() {
+    // Check if it's a "loop var in collection" statement first
+    if (match(TokenType::IDENTIFIER)) {
+        std::string var_name = std::get<std::string>(previous().value);
+        
+        if (match(TokenType::IN)) {
+            ExpressionPtr iterable = expression();
+            
+            consume(TokenType::COLON, "Expected ':' after loop in.");
+            match(TokenType::NEWLINE);  // Consume the newline
+            
+            // Expect INDENT token
+            consume(TokenType::INDENT, "Expected indented loop body.");
+            
+            StatementPtr body = block();
+            
+            return std::make_shared<LoopInStatement>(var_name, iterable, body);
+        } else {
+            // If not an 'in' loop, backtrack and try as times loop
+            current--;
+        }
+    }
+    
     // Check if it's a "loop N times" statement
     if (check(TokenType::INTEGER) || check(TokenType::IDENTIFIER)) {
         ExpressionPtr count = expression();
@@ -287,24 +293,6 @@ StatementPtr Parser::loop_statement() {
         StatementPtr body = block();
         
         return std::make_shared<LoopTimesStatement>(count, body);
-    }
-    
-    // Check if it's a "loop var in collection" statement
-    if (match(TokenType::IDENTIFIER)) {
-        std::string var_name = std::get<std::string>(previous().value);
-        
-        consume(TokenType::IN, "Expected 'in' after variable in loop.");
-        ExpressionPtr iterable = expression();
-        
-        consume(TokenType::COLON, "Expected ':' after loop in.");
-        match(TokenType::NEWLINE);  // Consume the newline
-        
-        // Expect INDENT token
-        consume(TokenType::INDENT, "Expected indented loop body.");
-        
-        StatementPtr body = block();
-        
-        return std::make_shared<LoopInStatement>(var_name, iterable, body);
     }
     
     throw error(peek(), "Expected variable name or number after 'loop'.");
@@ -322,11 +310,8 @@ StatementPtr Parser::return_statement() {
 }
 
 StatementPtr Parser::print_statement() {
-    if (this->verbose) std::cout << "Entering print_statement().\n"; // Debug
     ExpressionPtr value = expression();
-    if (this->verbose) std::cout << "print_statement() parsed expression, checking NEWLINE, current: " << peek().toString() << "\n"; // Debug
     match(TokenType::NEWLINE);  // Consume the newline
-    if (this->verbose) std::cout << "print_statement() finished.\n"; // Debug
     return std::make_shared<PrintStatement>(value);
 }
 
@@ -457,7 +442,7 @@ ExpressionPtr Parser::term() {
 ExpressionPtr Parser::factor() {
     ExpressionPtr expr = unary();
     
-    while (match({TokenType::MULTIPLY, TokenType::DIVIDE})) {
+    while (match({TokenType::MULTIPLY, TokenType::DIVIDE, TokenType::MODULO})) {
         TokenType op = previous().type;
         ExpressionPtr right = unary();
         expr = std::make_shared<BinaryExpression>(expr, op, right);

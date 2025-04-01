@@ -343,6 +343,10 @@ Token Lexer::handle_operator() {
             advance();
             return Token(TokenType::DIVIDE, line, column - 1);
         
+        case '%':
+            advance();
+            return Token(TokenType::MODULO, line, column - 1);
+        
         case '^':
             advance();
             return Token(TokenType::CONCAT, line, column - 1);

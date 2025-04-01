@@ -1,6 +1,6 @@
-# Vypr Programming Language
+# Introducing: Vypr
 
-A simple programming language compiler that translates Vypr code (.vy files) to Python. Vypr offers a clean syntax inspired by Python but with some unique features for readability and simplicity.
+A simple programming language compiler that translates Vypr code (.vy files) to Python. Vypr offers a clean syntax inspired by a combination of Python and Javascript, but with some extra unique features for readability and simplicity.
 
 ## Project Structure
 
@@ -25,8 +25,8 @@ vypr/
 │   ├── compiler.cpp          # Compiler driver implementation
 │   └── main.cpp              # Main executable entry point
 ├── examples/                 # Example Vypr programs
-│   ├── hello_world.vy        # Simple hello world example
-│   └── factorial.vy          # Factorial calculation example
+│   ├── sample.vy             # Demonstration of all basic Vypr features
+│   └── function_test.vy      # Demonstration of functions in Vypr
 ├── build/                    # Build directory (created during build)
 ├── CMakeLists.txt            # CMake build configuration
 └── README.md                 # This file
@@ -65,26 +65,28 @@ vypr/
 
 ### Running Vypr Programs on Windows
 
+(Assuming you're in the same directory as the compiled `vypr.exe` file...)
+
 1. Compile a Vypr program:
    ```
    vypr.exe path/to/program.vy
    ```
 
-2. This will create a Python file with the same name (`program.py`) and a batch file to run it.
+2. This will create a Python file with the same name (`program.py`) and a batch file to run it. It will also automatically run the generated Python file upon compilation.
 
 3. You can also create an executable with a specific name:
    ```
    vypr.exe -o my_program path/to/program.vy
    ```
 
-4. Then run the program:
+4. If you want to rerun the program without compiling Vypr code again, do this:
    ```
    my_program.bat
    ```
 
 ### Command-line Options
 
-- `-verbose`: Show compilation progress (organized from lexical analysis stage to code generation / IR stage) and other debugger details
+- `-v, --verbose`: Show compilation progress (organized from lexical analysis stage to code generation / IR stage) 
 - `-o filename`: Specify output .exe file name
 - `-h, --help`: Show help message
 
@@ -122,6 +124,7 @@ var a = 5 + 3    // Addition
 var b = 5 - 3    // Subtraction
 var c = 5 * 3    // Multiplication
 var d = 5 / 3    // Division
+var e = 5 % 3    // Modulo
 ```
 
 String concatenation:
@@ -148,7 +151,7 @@ var eitherTrue = (a > 0) || (b < 10) // Logical OR
 Operator Precedence (Highest to Lowest):
 
 1. `()` (Parentheses)
-2. `*`, `/` (Multiplication, Division)
+2. `*`, `/`, `%` (Multiplication, Division, Modulo)
 3. `+`, `-` (Addition, Subtraction)
 4. `^` (String Concatenation)
 5. `<`, `<=`, `>`, `>=` (Comparison)
@@ -261,20 +264,14 @@ The Vypr compiler consists of several stages:
 4. **IR Generation**: The `ir_generator.cpp` module converts the AST to an Intermediate Representation (IR).
 5. **Code Generation**: The `code_generator.cpp` module generates Python code from the IR.
 
-### Extending Vypr
-
-To add new features to the Vypr language, you'll need to modify the following components:
-
-1. **Add new tokens**: Update the `TokenType` enum in `lexer.cpp` and tokenization logic.
-2. **Add AST nodes**: Create new node classes in `parser.cpp` for new language constructs.
-3. **Update parsing logic**: Modify the `Parser` class to handle the new syntax.
-4. **Add semantic checks**: Update the `SemanticAnalyzer` class in `semantic_analyzer.cpp` to check new constructs.
-5. **Add IR and code generation**: Update the `IRGenerator` and `CodeGenerator` classes to handle new features.
-
-## Contributing
-
-If you'd like to contribute to Vypr, feel free to submit a pull request with your changes.
-
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details. 
+
+## Developers
+
+This PL was made with love by team AGILE of TN32:
+- Dane Quintano
+- Jansen Moral
+- JC Paglinawan
+- Dharmveer Sandhu

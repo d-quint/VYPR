@@ -77,27 +77,23 @@ int main(int argc, char* argv[]) {
         std::string py_file = output_file + ".py"; // Keep track of the .py filename
         compiler.compile(source, output_file, verbose); // Pass base output name
 
-        if (!verbose) {
-            std::cout << "Compilation successful!\n";
-            std::cout << "Output files:\n";
-            std::cout << "  - " << py_file << "\n";
-            std::cout << "  - " << output_file << ".bat\n";
-            
-            // Attempt to run the generated Python file
-            std::cout << "\nAttempting to run generated Python script...\n";
-            std::cout << "\n==================== Program Output Start ====================\n\n";
-            
-            std::string command = "python " + py_file;
-            int return_code = system(command.c_str());
-            
-            std::cout << "\n==================== Program Output End ======================\n\n";
-            
-            if (return_code != 0) {
-                std::cerr << "Warning: Python script execution might have failed (return code: " 
-                          << return_code << "). Ensure 'python' is in your PATH.\n";
-            }
-        } else {
-             std::cout << "\nVerbose mode: Skipping automatic execution.\n";
+        std::cout << "Compilation successful!\n";
+        std::cout << "Output files:\n";
+        std::cout << "  - " << py_file << "\n";
+        std::cout << "  - " << output_file << ".bat\n";
+        
+        // Attempt to run the generated Python file
+        std::cout << "\nAttempting to run generated Python script...\n";
+        std::cout << "\n==================== Program Output Start ====================\n\n";
+        
+        std::string command = "python " + py_file;
+        int return_code = system(command.c_str());
+        
+        std::cout << "\n==================== Program Output End ======================\n\n";
+        
+        if (return_code != 0) {
+            std::cerr << "Warning: Python script execution might have failed (return code: " 
+                        << return_code << "). Ensure 'python' is in your PATH.\n";
         }
 
         return 0;
