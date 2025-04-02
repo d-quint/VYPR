@@ -36,9 +36,9 @@ vypr/
 ## Building the Compiler
 
 ### Installation Guide
-1. Setup Instructions [Video](https://drive.google.com/file/d/1e3YHrh4ncr1vZ6ONq8kXTRUaEcNYv4f8/view)
-2. Compiling and Running Sample Code [Video]()
-3. Compiler Overview [Video]()
+1. Setup Instructions [[Video](https://drive.google.com/file/d/1e3YHrh4ncr1vZ6ONq8kXTRUaEcNYv4f8/view)]
+2. Compiling and Running Sample Code [[Video]()
+3. Compiler Overview [[Video]()]
 
 ### Prerequisites
 
