@@ -37,8 +37,8 @@ vypr/
 
 ### Prerequisites
 
-- C++17 compatible compiler (GCC, Clang, MSVC)
-- CMake 3.12 or higher
+- C++17 compatible compiler (GCC, Clang, MSVC) 
+- CMake 3.12 or higher ([Download Here](https://cmake.org/download/))
 
 ### Build Instructions
 
