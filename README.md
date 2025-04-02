@@ -1,4 +1,4 @@
-![Banner Image](https://github.com/d-quint/VYPR/blob/main/images/banner_1.png)
+![VYPR Banner](https://github.com/d-quint/VYPR/blob/main/images/banner.png)
 # Introducing: Vypr
 
 Vypr offers a clean syntax inspired by a combination of Python and Javascript, but with some extra unique features for readability and simplicity. This source code is an implementation of a compiler that generates IR code, translates it into Python code, and offers a way to run and interact with Vypr code.
