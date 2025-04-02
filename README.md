@@ -35,6 +35,11 @@ vypr/
 
 ## Building the Compiler
 
+### Installation Guide
+1. Setup Instructions [Video](https://drive.google.com/file/d/1e3YHrh4ncr1vZ6ONq8kXTRUaEcNYv4f8/view)
+2. Compiling and Running Sample Code [Video]()
+3. Compiler Overview [Video]()
+
 ### Prerequisites
 
 - C++17 compatible compiler 
@@ -43,7 +48,7 @@ vypr/
   - **MSVC**: [Download MSVC](https://visualstudio.microsoft.com/)
   - **MinGW**: [Download MinGW](https://github.com/niXman/mingw-builds-binaries/releases) [RECOMMENDED]
 - CMake 3.12 or higher ([Download Here](https://cmake.org/download/))
-- 
+
 ### Build Instructions
 
 1. Clone the repository:
