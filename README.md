@@ -37,9 +37,13 @@ vypr/
 
 ### Prerequisites
 
-- C++17 compatible compiler (GCC, Clang, MSVC) 
+- C++17 compatible compiler 
+  - **GCC**: [Download GCC](https://gcc.gnu.org/)
+  - **Clang**: [Download Clang](https://clang.llvm.org/)
+  - **MSVC**: [Download MSVC](https://visualstudio.microsoft.com/)
+  - **MinGW**: [Download MinGW](https://github.com/niXman/mingw-builds-binaries/releases) [RECOMMENDED]
 - CMake 3.12 or higher ([Download Here](https://cmake.org/download/))
-
+- 
 ### Build Instructions
 
 1. Clone the repository:
