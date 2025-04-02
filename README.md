@@ -70,14 +70,14 @@ vypr/
 
 1. Compile a Vypr program:
    ```
-   vypr path/to/program.vy
+   build/vypr path/to/program.vy
    ```
 
 2. This will create a Python file with the same name (`program.py`) and a batch file to run it. It will also automatically run the generated Python file upon compilation.
 
 3. You can also create an executable with a specific name:
    ```
-   vypr -o my_program path/to/program.vy
+   build/vypr -o my_program path/to/program.vy
    ```
 
 4. If you want to rerun the program without compiling Vypr code again, do this:
